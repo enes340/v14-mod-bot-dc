@@ -1,25 +1,42 @@
-const {EmbedBuilder} = require("discord.js");
-const { prefix } = require("../config.js")
-const db = require('croxydb')
 
-exports.run = async (client, message, args) => {
+const ms = require('ms');
+const db = require('croxydb');
+const Discord = require('discord.js');
 
-  
-   if(!message.member.permissions.has("MANAGE_ROLES")) return message.reply("Üyeleri At Yetkiniz Yok.")
-    
-   const member = message.mentions.roles.first();
-  
-   if(!member) return message.reply("Rol Belırtın.")
 
-  
-  message.reply("Ayarlandı Bro")
-  db.set(`otorol_${message.guild.iḋ}`, { rol: member.id })
+module.exports.run = async(client, message, args, tools) => {
+  if (!message.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)) return message.reply(`   **Bu komutu kullanabilmek için "\`Yönetici\`" yetkisine sahip olmalısın.**`);
+  let rol = message.mentions.roles.first()
+  let kanal = message.mentions.channels.first()
+  if(!kanal) return message.reply({content: "Bir Rol Etiketlemeli veya Rolün Adını yazmalısın. Örnek `e!otorol #kanal @rol`", allowedMentions: { repliedUser: false }})
+  if(!rol) return message.reply({content: "Bir Rol Etiketlemeli veya Rolün Adını yazmalısın. Örnek `e!otorol #kanal @rol`", allowedMentions: { repliedUser: false }})
+  const embed = new Discord.EmbedBuilder()
+  .setAuthor({name: message.author.tag, iconURL: message.author.displayAvatarURL({dynamic: true})})
+   .setColor("Red")
+  .setDescription(`╔▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+   ║
+   ║ • Ayarlanan Kanal: ${kanal}
+   ║
+   ║ • Ayarlanan Rol: ${rol}
+   ║
+   ║ •  Artık Yeni Gelen Üyelere Vereceğim Rolü Ayarladım! 
+   ║
+   ╚▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ `)
+  .setFooter({ text: client.user.username+' Otorol Sistemi', iconURL: client.user.displayAvatarURL({dynamic: true})})
+  .setTimestamp();
+  message.reply({embeds: [embed], allowedMentions: { repliedUser: false }})
+
+  db.set(`otorol_${message.guild.id}`, {rol: rol.id , kanal: kanal.id })
   
 };
+
+
 exports.conf = {
-  aliases: []
+  aliases: ["rol","otorol"],
+  permLevel: 0,
 };
-
 exports.help = {
-  name: "otorol"
+  name: 'otorol',
+   description: 'Susturma',
+  usage: 'timeout <@kullanıcı> <süre>'
 };
